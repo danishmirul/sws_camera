@@ -7,12 +7,12 @@
 #define CAMERA_MODEL_AI_THINKER // Has PSRAM
 #include "camera_pins.h"
 
-const char* ssid = "Free_WiFI";
-const char* password = "XDePassword";
-const char* websocket_server_host = "192.168.8.101";
-const uint16_t websocket_server_port = 8888;
-const String http_server_host = "192.168.8.101";
-const String http_server_port = "8080";
+const char* ssid = "****";
+const char* password = "*****";
+const char* websocket_server_host = "*****";
+const uint16_t websocket_server_port = *****;
+const String http_server_host = "*****";
+const String http_server_port = "*****";
 
 using namespace websockets;
 WebsocketsClient client;
