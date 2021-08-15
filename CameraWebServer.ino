@@ -4,41 +4,25 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
-//
-// WARNING!!! PSRAM IC required for UXGA resolution and high JPEG quality
-//            Ensure ESP32 Wrover Module or other board with PSRAM is selected
-//            Partial images will be transmitted if image exceeds buffer size
-//
-
-// Select camera model
-//#define CAMERA_MODEL_WROVER_KIT // Has PSRAM
-//#define CAMERA_MODEL_ESP_EYE // Has PSRAM
-//#define CAMERA_MODEL_M5STACK_PSRAM // Has PSRAM
-//#define CAMERA_MODEL_M5STACK_V2_PSRAM // M5Camera version B Has PSRAM
-//#define CAMERA_MODEL_M5STACK_WIDE // Has PSRAM
-//#define CAMERA_MODEL_M5STACK_ESP32CAM // No PSRAM
 #define CAMERA_MODEL_AI_THINKER // Has PSRAM
-//#define CAMERA_MODEL_TTGO_T_JOURNAL // No PSRAM
-
 #include "camera_pins.h"
-
 
 const char* ssid = "Free_WiFI";
 const char* password = "XDePassword";
-const char* websocket_server_host = "192.168.8.102";
+const char* websocket_server_host = "192.168.8.101";
 const uint16_t websocket_server_port = 8888;
-const String http_server_host = "192.168.8.102";
-const String http_server_port = "9876";
+const String http_server_host = "192.168.8.101";
+const String http_server_port = "8080";
 
 using namespace websockets;
 WebsocketsClient client;
 
 void setup() {
   Serial.begin(115200);
+  Serial.println("Serial Begin");
   Serial.setDebugOutput(true);
   Serial.println();
 
-  Serial.println("INIT CAMERA");
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -68,18 +52,22 @@ void setup() {
     config.jpeg_quality = 10;
     config.fb_count = 2;
   } else {
-    config.frame_size = FRAMESIZE_SVGA;
+    config.frame_size = FRAMESIZE_QVGA;
     config.jpeg_quality = 12;
     config.fb_count = 1;
   }
 
   // camera init
+  Serial.println("Init Camera");
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
     Serial.printf("Camera init failed with error 0x%x", err);
     return;
   }
 
+  Serial.println("Connecting WiFI");
+  Serial.print("SSID: ");
+  Serial.println(ssid);
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -89,10 +77,13 @@ void setup() {
   Serial.println("");
   Serial.println("WiFi connected");
 
-  Serial.print("Camera Ready! Use 'http://");
-  Serial.print(WiFi.localIP());
-  Serial.println("' to connect");
-
+  Serial.println("Connecting WebSocket");
+  Serial.print("IP: ");
+  Serial.print(websocket_server_host);
+  Serial.print(":");
+  Serial.print(websocket_server_port);
+  Serial.println("");
+  
   while(!client.connect(websocket_server_host, websocket_server_port, "/")){
     delay(500);
     Serial.print(".");
@@ -150,7 +141,7 @@ void loop() {
     return;
   }
 
+//  postingImage(fb);
   client.sendBinary((const char*) fb->buf, fb->len);
-  postingImage(fb);
   esp_camera_fb_return(fb);
 }
